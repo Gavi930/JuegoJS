@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Adivina el Número</title>
+  <style>
+    body {
+      background-color: #f0f8ff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 400px;
+      margin: 40px auto;
+      padding: 0 15px;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    #mensaje {
+      min-height: 50px;
+      margin-bottom: 15px;
+      padding: 10px;
+      border-radius: 5px;
+      font-weight: bold;
+    }
+    .alert {
+      background-color: #e7f3fe;
+      color: #31708f;
+      border: 1px solid #bce8f1;
+    }
+    .alert-success {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .alert-danger {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    .alert-warning {
+      background-color: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffeeba;
+    }
+    .alert-info {
+      background-color: #d1ecf1;
+      color: #0c5460;
+      border: 1px solid #bee5eb;
+    }
+    input[type="number"] {
+      width: 100%;
+      padding: 8px;
+      font-size: 16px;
+      margin-bottom: 10px;
+      box-sizing: border-box;
+    }
+    button {
+      width: 48%;
+      padding: 10px;
+      font-size: 16px;
+      margin: 5px 1%;
+      cursor: pointer;
+    }
+    #historial {
+      margin-top: 20px;
+      padding-left: 20px;
+    }
+    #historial li {
+      margin-bottom: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Adivina el numero</h1>
+  <p>Estoy pensando en un número entre 1 y 100. ¿Cuál es?</p>
+  <input id="inputNumero" type="number" min="1" max="100" placeholder="Introduce tu número" />
+  <div>
+    <button id="btnAdivinar">Adivinar</button>
+    <button id="btnReiniciar">Reiniciar</button>
+  </div>
+  <div id="mensaje" class="alert"></div>
+
+  <h3>Historial de partidas</h3>
+  <ul id="historial"></ul>
+
+  <script>
+    let numeroSecreto;
+    let intentos;
+    const maxIntentos = 12;
+
+    const inputNumero = document.getElementById('inputNumero');
+    const btnAdivinar = document.getElementById('btnAdivinar');
+    const btnReiniciar = document.getElementById('btnReiniciar');
+    const mensaje = document.getElementById('mensaje');
+    const historial = document.getElementById('historial');
+
+    function iniciarJuego() {
+      numeroSecreto = Math.floor(Math.random() * 100) + 1;
+      intentos = 0;
+      mensaje.textContent = '';
+      mensaje.className = 'alert';
+      inputNumero.value = '';
+      inputNumero.disabled = false;
+      btnAdivinar.disabled = false;
+      inputNumero.focus();
+    }
+
+    function guardarHistorial(resultado) {
+      let partidas = JSON.parse(localStorage.getItem('historialPartidas')) || [];
+      partidas.push(resultado);
+      localStorage.setItem('historialPartidas', JSON.stringify(partidas));
+      mostrarHistorial();
+    }
+
+    function mostrarHistorial() {
+      historial.innerHTML = '';
+      let partidas = JSON.parse(localStorage.getItem('historialPartidas')) || [];
+      partidas.forEach((partida, i) => {
+        const li = document.createElement('li');
+        li.textContent = `Partida ${i + 1}: ${partida}`;
+        historial.appendChild(li);
+      });
+    }
+
+    btnAdivinar.addEventListener('click', () => {
+      const guess = Number(inputNumero.value);
+      if (!guess || guess < 1 || guess > 100) {
+        mensaje.textContent = 'Por favor, ingresa un número entre 1 y 100.';
+        mensaje.className = 'alert alert-warning';
+        return;
+      }
+      intentos++;
+      if (guess === numeroSecreto) {
+        mensaje.textContent = `¡Correcto! Adivinaste el número en ${intentos} intento(s).`;
+        mensaje.className = 'alert alert-success';
+        guardarHistorial(`Ganó en ${intentos} intento(s)`);
+        inputNumero.disabled = true;
+        btnAdivinar.disabled = true;
+      } else if (intentos >= maxIntentos) {
+        mensaje.textContent = `Fin del juego. El número era ${numeroSecreto}.`;
+        mensaje.className = 'alert alert-danger';
+        guardarHistorial(`Perdió. Número: ${numeroSecreto}`);
+        inputNumero.disabled = true;
+        btnAdivinar.disabled = true;
+      } else if (guess < numeroSecreto) {
+        mensaje.textContent = 'El numero es mas alto';
+        mensaje.className = 'alert alert-info';
+      } else {
+        mensaje.textContent = 'Demasiado es mas bajo';
+        mensaje.className = 'alert alert-info';
+      }
+      inputNumero.value = '';
+      inputNumero.focus();
+    });
+
+    btnReiniciar.addEventListener('click', iniciarJuego);
+
+    // Cargar historial y empezar el juego
+    mostrarHistorial();
+    iniciarJuego();
+  </script>
+</body>
+</html>
